@@ -14,6 +14,8 @@ pub trait ConfigModule: multiversx_sc_modules::only_admin::OnlyAdminModule {
         guild_master_unbond_epochs: Epoch,
         min_stake_user: BigUint,
         min_stake_guild_master: BigUint,
+        base_farm_token_id: ManagedBuffer,
+        base_unbond_token_id: ManagedBuffer,
         config_sc_code: ManagedBuffer,
     ) {
         let config_mapper = self.config_sc_address();
@@ -29,6 +31,8 @@ pub trait ConfigModule: multiversx_sc_modules::only_admin::OnlyAdminModule {
                 guild_master_unbond_epochs,
                 min_stake_user,
                 min_stake_guild_master,
+                base_farm_token_id,
+                base_unbond_token_id,
             )
             .deploy_contract::<()>(&config_sc_code, code_metadata);
 
