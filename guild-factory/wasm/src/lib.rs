@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           21
+// Endpoints:                           23
 // Async Callback (empty):               1
-// Total number of exported functions:  24
+// Total number of exported functions:  26
 
 #![no_std]
 
@@ -21,9 +21,11 @@ multiversx_sc_wasm_adapter::endpoints! {
         init => init
         upgrade => upgrade
         deployConfigSc => deploy_config_sc
+        upgradeConfigSc => upgrade_config_sc
         callConfigFunction => call_config_function
         getConfigAddress => config_sc_address
         setMaxActiveGuilds => set_max_active_guilds
+        upgradeGuild => upgrade_guild
         deployGuild => deploy_guild
         resumeGuild => resume_guild_endpoint
         getAllGuilds => get_all_guilds
