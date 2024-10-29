@@ -52,6 +52,8 @@ pub trait StakeFarmModule:
                 !self.guild_master_tokens().is_empty(),
                 "Guild master must stake first"
             );
+        } else {
+            self.require_guild_master_can_stake();
         }
 
         let enter_result =
@@ -78,6 +80,23 @@ pub trait StakeFarmModule:
         new_farm_token
     }
 
+    fn require_guild_master_can_stake(&self) {
+        let factory_address = self.blockchain().get_owner_address();
+        let own_sc_address = self.blockchain().get_sc_address();
+        let guild_id = self
+            .external_guild_ids(factory_address.clone())
+            .get_id_non_zero(&own_sc_address);
+
+        let active_guilds_mapper = self.external_active_guilds(factory_address.clone());
+        if !active_guilds_mapper.contains(&guild_id) {
+            let max_guilds = self.external_max_active_guilds(factory_address).get();
+            require!(
+                active_guilds_mapper.len() < max_guilds,
+                "May not create guild at this time, limit exceeded"
+            );
+        }
+    }
+
     fn get_orig_caller_from_opt(
         &self,
         caller: &ManagedAddress,
@@ -96,4 +115,24 @@ pub trait StakeFarmModule:
             OptionalValue::None => caller.clone(),
         }
     }
+
+    // factory storage
+
+    #[storage_mapper_from_address("guildIds")]
+    fn external_guild_ids(
+        &self,
+        sc_address: ManagedAddress,
+    ) -> AddressToIdMapper<Self::Api, ManagedAddress>;
+
+    #[storage_mapper_from_address("activeGuilds")]
+    fn external_active_guilds(
+        &self,
+        sc_address: ManagedAddress,
+    ) -> UnorderedSetMapper<AddressId, ManagedAddress>;
+
+    #[storage_mapper_from_address("maxActiveGuilds")]
+    fn external_max_active_guilds(
+        &self,
+        sc_address: ManagedAddress,
+    ) -> SingleValueMapper<usize, ManagedAddress>;
 }
