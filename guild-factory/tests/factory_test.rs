@@ -1117,15 +1117,20 @@ fn try_activate_too_many_guilds_test() {
         &unbond_token_roles[..],
     );
 
-    // try set guild active
+    // try stake and set guild active
     setup
         .b_mock
-        .execute_tx(
+        .set_esdt_balance(&third_owner_address, FARMING_TOKEN_ID, &rust_biguint!(1));
+    setup
+        .b_mock
+        .execute_esdt_transfer(
             &third_owner_address,
-            &setup.factory_wrapper,
-            &rust_biguint!(0),
+            &third_farm_wrapper,
+            FARMING_TOKEN_ID,
+            0,
+            &rust_biguint!(1),
             |sc| {
-                sc.resume_guild_endpoint(managed_address!(third_farm_wrapper.address_ref()));
+                let _ = sc.stake_farm_endpoint(OptionalValue::None);
             },
         )
         .assert_user_error("May not start another guild at this point");
@@ -1162,19 +1167,6 @@ fn try_activate_too_many_guilds_test() {
             },
         )
         .assert_ok();
-
-    // user start guild again
-    setup
-        .b_mock
-        .execute_tx(
-            &third_owner_address,
-            &setup.factory_wrapper,
-            &rust_biguint!(0),
-            |sc| {
-                sc.resume_guild_endpoint(managed_address!(third_farm_wrapper.address_ref()));
-            },
-        )
-        .assert_ok();
 }
 
 #[test]
@@ -1203,20 +1195,6 @@ fn calculate_rewards_only_guild_master_test() {
             &rust_biguint!(farm_in_amount),
             |sc| {
                 sc.stake_farm_endpoint(OptionalValue::None);
-            },
-        )
-        .assert_ok();
-
-    // resume guild
-
-    setup
-        .b_mock
-        .execute_tx(
-            &setup.first_owner_address,
-            &setup.factory_wrapper,
-            &rust_biguint!(0),
-            |sc| {
-                sc.resume_guild_endpoint(managed_address!(setup.first_farm_wrapper.address_ref()));
             },
         )
         .assert_ok();

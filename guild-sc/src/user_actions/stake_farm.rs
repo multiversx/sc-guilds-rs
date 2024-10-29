@@ -4,6 +4,16 @@ use common_structs::PaymentsVec;
 
 use crate::farm_base_impl::base_traits_impl::FarmStakingWrapper;
 
+mod guild_factory_proxy {
+    multiversx_sc::imports!();
+
+    #[multiversx_sc::proxy]
+    pub trait GuildFactoryProxy {
+        #[endpoint(resumeGuild)]
+        fn resume_guild_endpoint(&self);
+    }
+}
+
 #[multiversx_sc::module]
 pub trait StakeFarmModule:
     crate::custom_rewards::CustomRewardsModule
@@ -53,7 +63,7 @@ pub trait StakeFarmModule:
                 "Guild master must stake first"
             );
         } else {
-            self.require_guild_master_can_stake();
+            self.call_resume_guild();
         }
 
         let enter_result =
@@ -80,23 +90,6 @@ pub trait StakeFarmModule:
         new_farm_token
     }
 
-    fn require_guild_master_can_stake(&self) {
-        let factory_address = self.blockchain().get_owner_address();
-        let own_sc_address = self.blockchain().get_sc_address();
-        let guild_id = self
-            .external_guild_ids(factory_address.clone())
-            .get_id_non_zero(&own_sc_address);
-
-        let active_guilds_mapper = self.external_active_guilds(factory_address.clone());
-        if !active_guilds_mapper.contains(&guild_id) {
-            let max_guilds = self.external_max_active_guilds(factory_address).get();
-            require!(
-                active_guilds_mapper.len() < max_guilds,
-                "May not create guild at this time, limit exceeded"
-            );
-        }
-    }
-
     fn get_orig_caller_from_opt(
         &self,
         caller: &ManagedAddress,
@@ -116,6 +109,29 @@ pub trait StakeFarmModule:
         }
     }
 
+    fn call_resume_guild(&self) {
+        let factory_address = self.blockchain().get_owner_address();
+        let own_sc_address = self.blockchain().get_sc_address();
+        let guild_id = self
+            .external_guild_ids(factory_address.clone())
+            .get_id_non_zero(&own_sc_address);
+
+        let active_guilds_mapper = self.external_active_guilds(factory_address.clone());
+        if active_guilds_mapper.contains(&guild_id) {
+            return;
+        }
+
+        self.guild_factory_proxy_obj(factory_address)
+            .resume_guild_endpoint()
+            .execute_on_dest_context()
+    }
+
+    #[proxy]
+    fn guild_factory_proxy_obj(
+        &self,
+        sc_address: ManagedAddress,
+    ) -> guild_factory_proxy::Proxy<Self::Api>;
+
     // factory storage
 
     #[storage_mapper_from_address("guildIds")]
@@ -129,10 +145,4 @@ pub trait StakeFarmModule:
         &self,
         sc_address: ManagedAddress,
     ) -> UnorderedSetMapper<AddressId, ManagedAddress>;
-
-    #[storage_mapper_from_address("maxActiveGuilds")]
-    fn external_max_active_guilds(
-        &self,
-        sc_address: ManagedAddress,
-    ) -> SingleValueMapper<usize, ManagedAddress>;
 }

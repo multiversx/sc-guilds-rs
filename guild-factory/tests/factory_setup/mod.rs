@@ -110,36 +110,6 @@ where
             )
             .assert_ok();
 
-        // resume guild
-
-        setup
-            .b_mock
-            .execute_tx(
-                &setup.first_owner_address,
-                &setup.factory_wrapper,
-                &rust_biguint!(0),
-                |sc| {
-                    sc.resume_guild_endpoint(managed_address!(setup
-                        .first_farm_wrapper
-                        .address_ref()));
-                },
-            )
-            .assert_ok();
-
-        setup
-            .b_mock
-            .execute_tx(
-                &setup.second_owner_address,
-                &setup.factory_wrapper,
-                &rust_biguint!(0),
-                |sc| {
-                    sc.resume_guild_endpoint(managed_address!(setup
-                        .second_farm_wrapper
-                        .address_ref()));
-                },
-            )
-            .assert_ok();
-
         setup
     }
 

@@ -95,30 +95,25 @@ pub trait FactoryModule: crate::config::ConfigModule + utils::UtilsModule {
     }
 
     #[endpoint(resumeGuild)]
-    fn resume_guild_endpoint(&self, guild: ManagedAddress) {
+    fn resume_guild_endpoint(&self) {
+        let caller = self.blockchain().get_caller();
+        let guild_id = self.guild_ids().get_id_non_zero(&caller);
+        self.require_known_guild(guild_id);
+
         let current_active_guilds = self.get_current_active_guilds();
         let max_active_guilds = self.max_active_guilds().get();
         require!(
             current_active_guilds < max_active_guilds,
             "May not start another guild at this point"
         );
-
-        let guild_id = self.guild_ids().get_id_non_zero(&guild);
         require!(
             !self.active_guilds().contains(&guild_id),
             "Guild already active"
         );
-
-        self.require_known_guild(guild_id);
-
-        let caller = self.blockchain().get_caller();
-        let caller_id = self.user_ids().get_id_non_zero(&caller);
-        self.require_guild_master_caller(guild_id, caller_id);
         self.require_config_setup_complete();
-        self.require_guild_setup_complete(guild.clone());
-        self.require_guild_master_already_staked(guild.clone());
+        self.require_guild_setup_complete(caller.clone());
 
-        self.start_produce_rewards(guild);
+        self.start_produce_rewards(caller);
 
         self.active_guilds().insert(guild_id);
     }
@@ -179,14 +174,6 @@ pub trait FactoryModule: crate::config::ConfigModule + utils::UtilsModule {
         );
     }
 
-    fn require_guild_master_caller(&self, guild_id: AddressId, caller_id: AddressId) {
-        let guild_master_id = self.guild_master_for_guild(guild_id).get();
-        require!(
-            guild_master_id == caller_id,
-            "Only guild master may call this function"
-        );
-    }
-
     fn require_config_setup_complete(&self) {
         let config_sc_address = self.config_sc_address().get();
         let guild_master_tiers_mapper = self.external_guild_master_tiers(config_sc_address.clone());
@@ -203,13 +190,6 @@ pub trait FactoryModule: crate::config::ConfigModule + utils::UtilsModule {
             .contract(guild)
             .check_local_roles_set()
             .execute_on_dest_context();
-    }
-
-    fn require_guild_master_already_staked(&self, guild: ManagedAddress) {
-        require!(
-            !self.external_guild_master_tokens(guild).is_empty(),
-            "Guild master must stake first"
-        );
     }
 
     fn start_produce_rewards(&self, guild: ManagedAddress) {
@@ -275,12 +255,6 @@ pub trait FactoryModule: crate::config::ConfigModule + utils::UtilsModule {
         &self,
         sc_addr: ManagedAddress,
     ) -> VecMapper<UserRewardTier, ManagedAddress>;
-
-    #[storage_mapper_from_address("guildMasterTokens")]
-    fn external_guild_master_tokens(
-        &self,
-        sc_addr: ManagedAddress,
-    ) -> SingleValueMapper<BigUint, ManagedAddress>;
 
     // proxy
 
