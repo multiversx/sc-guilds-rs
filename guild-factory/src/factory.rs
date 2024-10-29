@@ -120,8 +120,30 @@ pub trait FactoryModule: crate::config::ConfigModule + utils::UtilsModule {
 
     #[view(getAllGuilds)]
     fn get_all_guilds(&self) -> MultiValueEncoded<GetGuildResultType<Self::Api>> {
+        self.get_all_guilds_in_mapper(&self.deployed_guilds())
+    }
+
+    #[view(getAllActiveGuilds)]
+    fn get_all_active_guilds(&self) -> MultiValueEncoded<GetGuildResultType<Self::Api>> {
+        self.get_all_guilds_in_mapper(&self.active_guilds())
+    }
+
+    #[view(getGuildId)]
+    fn get_guild_id(&self, guild_address: ManagedAddress) -> AddressId {
+        self.guild_ids().get_id_non_zero(&guild_address)
+    }
+
+    #[view(getCurrentActiveGuilds)]
+    fn get_current_active_guilds(&self) -> usize {
+        self.active_guilds().len()
+    }
+
+    fn get_all_guilds_in_mapper(
+        &self,
+        mapper: &UnorderedSetMapper<AddressId>,
+    ) -> MultiValueEncoded<GetGuildResultType<Self::Api>> {
         let mut result = MultiValueEncoded::new();
-        for guild_id in self.deployed_guilds().iter() {
+        for guild_id in mapper.iter() {
             let guild_master_id = self.guild_master_for_guild(guild_id).get();
             let opt_guild_address = self.guild_ids().get_address(guild_id);
             let opt_guild_master_address = self.user_ids().get_address(guild_master_id);
@@ -139,16 +161,6 @@ pub trait FactoryModule: crate::config::ConfigModule + utils::UtilsModule {
         }
 
         result
-    }
-
-    #[view(getGuildId)]
-    fn get_guild_id(&self, guild_address: ManagedAddress) -> AddressId {
-        self.guild_ids().get_id_non_zero(&guild_address)
-    }
-
-    #[view(getCurrentActiveGuilds)]
-    fn get_current_active_guilds(&self) -> usize {
-        self.active_guilds().len()
     }
 
     fn remove_guild_common(&self, guild: ManagedAddress) {
