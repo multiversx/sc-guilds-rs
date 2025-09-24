@@ -76,12 +76,16 @@ pub trait GlobalConfigModule {
         self.global_pause_status().set(UNPAUSED);
     }
 
+    #[only_owner]
+    #[endpoint(setMinUnbodnEpochsUser)]
     fn set_min_unbond_epochs_user(&self, min_unbond_epochs: Epoch) {
         self.require_valid_unbond_epochs(min_unbond_epochs);
 
         self.min_unbond_epochs_user().set(min_unbond_epochs);
     }
 
+    #[only_owner]
+    #[endpoint(setMinUnbondEpochsGuildMaster)]
     fn set_min_unbond_epochs_guild_master(&self, min_unbond_epochs: Epoch) {
         self.require_valid_unbond_epochs(min_unbond_epochs);
 
