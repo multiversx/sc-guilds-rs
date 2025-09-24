@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           32
+// Endpoints:                           34
 // Async Callback (empty):               1
-// Total number of exported functions:  35
+// Total number of exported functions:  37
 
 #![no_std]
 
@@ -38,6 +38,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         setPerBlockRewardAmount => set_per_block_reward_amount
         pauseAllGuilds => pause_all_guilds
         unpauseAllGuilds => unpause_all_guilds
+        setMinUnbondEpochsUser => set_min_unbond_epochs_user
+        setMinUnbondEpochsGuildMaster => set_min_unbond_epochs_guild_master
         getMaxStakedTokens => max_staked_tokens
         getMinUnbondEpochsUser => min_unbond_epochs_user
         getMinUnbondEpochsGuildMaster => min_unbond_epochs_guild_master
