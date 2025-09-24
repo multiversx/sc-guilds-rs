@@ -38,7 +38,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         setPerBlockRewardAmount => set_per_block_reward_amount
         pauseAllGuilds => pause_all_guilds
         unpauseAllGuilds => unpause_all_guilds
-        setMinUnbodnEpochsUser => set_min_unbond_epochs_user
+        setMinUnbondEpochsUser => set_min_unbond_epochs_user
         setMinUnbondEpochsGuildMaster => set_min_unbond_epochs_guild_master
         getMaxStakedTokens => max_staked_tokens
         getMinUnbondEpochsUser => min_unbond_epochs_user

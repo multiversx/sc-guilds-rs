@@ -77,7 +77,7 @@ pub trait GlobalConfigModule {
     }
 
     #[only_owner]
-    #[endpoint(setMinUnbodnEpochsUser)]
+    #[endpoint(setMinUnbondEpochsUser)]
     fn set_min_unbond_epochs_user(&self, min_unbond_epochs: Epoch) {
         self.require_valid_unbond_epochs(min_unbond_epochs);
 
